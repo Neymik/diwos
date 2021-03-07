@@ -30,7 +30,7 @@ var SCALE_change = 1.2
 var timeNow = (new Date()).getTime()
 var timePast = timeNow
 
-var pixTexturesCompression = 64
+var pixTexturesCompression = 24.5
 var objTimeToMove = 250 //msec
 
 var storageObjects = JSON.parse(localStorage.getItem('mainObjects'))
@@ -60,9 +60,12 @@ function graphishDrawInfoUpdate(obj) {
 
   drawInfoElement.xDestinationFrom = drawInfoElement.x
   drawInfoElement.yDestinationFrom = drawInfoElement.y
+  drawInfoElement.sizeFrom = drawInfoElement.size
 
   drawInfoElement.xWorld = obj.obj_x
   drawInfoElement.yWorld = obj.obj_y
+  drawInfoElement.sizeWorld = obj.obj_size
+
   drawInfoElement.timeDestination = objTimeToMove
 
 }
@@ -102,6 +105,10 @@ function graphishDrawInfoAdd(obj) {
   newObj.x = 0
   newObj.y = 0
 
+  newObj.sizeWorld = 0
+  newObj.sizeFrom = 0
+  newObj.size = obj.obj_size
+
   container.addChild(newObj)
 
   drawInfos.push(newObj)
@@ -131,8 +138,8 @@ function update(deltaTime) {
 
   drawInfos.forEach(function(drawInfo) {
 
-    var xCordTo = (drawInfo.xWorld - x) * relative_SCALE
-    var yCordTo = (drawInfo.yWorld - y) * relative_SCALE
+    var xCordTo = (drawInfo.xWorld - drawInfo.size / 2 - x) * relative_SCALE
+    var yCordTo = (drawInfo.yWorld - drawInfo.size / 2 - y) * relative_SCALE
 
     if (drawInfo.timeDestination > 0) {
 
@@ -147,15 +154,22 @@ function update(deltaTime) {
       xCordTo = drawInfo.xDestinationFrom + deltaXDestination * destinationProportion
       yCordTo = drawInfo.yDestinationFrom + deltaYDestination * destinationProportion
 
+      var deltaSize = drawInfo.sizeWorld - drawInfo.sizeFrom
+      drawInfo.size = drawInfo.sizeFrom + deltaSize * destinationProportion
+
     } else {
       drawInfo.timeDestination = 0
     }
 
+    //drawInfo.size = drawInfo.sizeWorld
+    //xCordTo = (drawInfo.xWorld - drawInfo.size / 2 - x) * relative_SCALE
+    //yCordTo = (drawInfo.yWorld - drawInfo.size / 2 - y) * relative_SCALE
+
     drawInfo.x = xCordTo
     drawInfo.y = yCordTo
 
-    var xScale = 1 / (drawInfo.texture.width / pixTexturesCompression) / (SCALE / pixTexturesCompression)
-    var yScale = 1 / (drawInfo.texture.height / pixTexturesCompression) / (SCALE / pixTexturesCompression)
+    var xScale = 1 / (drawInfo.texture.width / pixTexturesCompression) / (SCALE / pixTexturesCompression) * drawInfo.size
+    var yScale = 1 / (drawInfo.texture.height / pixTexturesCompression) / (SCALE / pixTexturesCompression) * drawInfo.size
     drawInfo.scale.set(xScale , yScale )
 
     //console.log(drawInfo.xDestinationFrom)
