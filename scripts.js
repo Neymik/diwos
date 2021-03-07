@@ -3,7 +3,7 @@
 
   exports.getCookies = function(name){
     let i = 0
-    let cookies = document.cookie.split(';')
+    let cookies = document.cookie.split('; ')
     let cookieName = name + '='
     while (i < cookies.length) {
         if (cookies[i].startsWith(cookieName)) {

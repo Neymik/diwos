@@ -58,12 +58,12 @@ function graphishDrawInfoUpdate(obj) {
     return
   }
 
-  drawInfoElement.xDestinationFrom = drawInfoElement.x
-  drawInfoElement.yDestinationFrom = drawInfoElement.y
+  drawInfoElement.xWorldDestinationFrom = drawInfoElement.xWorld
+  drawInfoElement.yWorldDestinationFrom = drawInfoElement.yWorld
   drawInfoElement.sizeFrom = drawInfoElement.size
 
-  drawInfoElement.xWorld = obj.obj_x
-  drawInfoElement.yWorld = obj.obj_y
+  drawInfoElement.xActualWorld = obj.obj_x
+  drawInfoElement.yActualWorld = obj.obj_y
   drawInfoElement.sizeWorld = obj.obj_size
 
   drawInfoElement.timeDestination = objTimeToMove
@@ -82,11 +82,11 @@ function graphishDrawInfoChangeUpdate(obj) {
     return
   }
 
-  drawInfoElement.xDestinationFrom = drawInfoElement.x
-  drawInfoElement.yDestinationFrom = drawInfoElement.y
+  drawInfoElement.xWorldDestinationFrom = drawInfoElement.xWorld
+  drawInfoElement.yWorldDestinationFrom = drawInfoElement.yWorld
 
-  drawInfoElement.xWorld += obj.obj_x
-  drawInfoElement.yWorld += obj.obj_y
+  drawInfoElement.xActualWorld += obj.obj_x
+  drawInfoElement.xActualWorld += obj.obj_y
   drawInfoElement.timeDestination = objTimeToMove
 
 }
@@ -97,11 +97,14 @@ function graphishDrawInfoAdd(obj) {
   var newObj = new PIXI.Sprite(obj.pixiTexture)
 
   newObj.id = obj.obj_id
-  newObj.xWorld = 0
-  newObj.yWorld = 0
-  newObj.xDestinationFrom = 0
-  newObj.yDestinationFrom = 0
+  newObj.xActualWorld = 0
+  newObj.yActualWorld = 0
+  newObj.xWorldDestinationFrom = 0
+  newObj.yWorldDestinationFrom = 0
   newObj.timeDestination = 0
+
+  newObj.xWorld = obj.obj_x
+  newObj.yWorld = obj.obj_y
   newObj.x = 0
   newObj.y = 0
 
@@ -138,21 +141,18 @@ function update(deltaTime) {
 
   drawInfos.forEach(function(drawInfo) {
 
-    var xCordTo = (drawInfo.xWorld - drawInfo.size / 2 - x) * relative_SCALE
-    var yCordTo = (drawInfo.yWorld - drawInfo.size / 2 - y) * relative_SCALE
-
     if (drawInfo.timeDestination > 0) {
 
       //console.log(deltaTime)
 
       drawInfo.timeDestination += -deltaTime
 
-      var deltaXDestination = xCordTo - drawInfo.xDestinationFrom
-      var deltaYDestination = yCordTo - drawInfo.yDestinationFrom
+      var deltaXDestination = drawInfo.xActualWorld - drawInfo.xWorldDestinationFrom
+      var deltaYDestination = drawInfo.yActualWorld - drawInfo.yWorldDestinationFrom
       var destinationProportion = 1 - drawInfo.timeDestination / objTimeToMove
 
-      xCordTo = drawInfo.xDestinationFrom + deltaXDestination * destinationProportion
-      yCordTo = drawInfo.yDestinationFrom + deltaYDestination * destinationProportion
+      drawInfo.xWorld = drawInfo.xWorldDestinationFrom + deltaXDestination * destinationProportion
+      drawInfo.yWorld = drawInfo.yWorldDestinationFrom + deltaYDestination * destinationProportion
 
       var deltaSize = drawInfo.sizeWorld - drawInfo.sizeFrom
       drawInfo.size = drawInfo.sizeFrom + deltaSize * destinationProportion
@@ -162,8 +162,9 @@ function update(deltaTime) {
     }
 
     //drawInfo.size = drawInfo.sizeWorld
-    //xCordTo = (drawInfo.xWorld - drawInfo.size / 2 - x) * relative_SCALE
-    //yCordTo = (drawInfo.yWorld - drawInfo.size / 2 - y) * relative_SCALE
+    var xCordTo = (drawInfo.xWorld - drawInfo.size / 2 - x) * relative_SCALE
+    var yCordTo = (drawInfo.yWorld - drawInfo.size / 2 - y) * relative_SCALE
+
 
     drawInfo.x = xCordTo
     drawInfo.y = yCordTo

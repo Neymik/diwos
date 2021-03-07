@@ -43,11 +43,27 @@ function getControlOption(code) {
 
   var ControlOption = new Object()
   ControlOption.Key1 = '1'
-  ControlOption.KeyW = 'upMove'
-  ControlOption.KeyA = 'leftMove'
-  ControlOption.KeyS = 'downMove'
-  ControlOption.KeyD = 'rightMove'
-  ControlOption.KeyE = 'attack'
+  ControlOption.KeyW = {
+    type: 'move',
+    argument: 'upMove'
+  }
+  ControlOption.KeyA =
+  {
+    type: 'move',
+    argument: 'leftMove'
+  }
+  ControlOption.KeyS = {
+    type: 'move',
+    argument: 'downMove'
+  }
+  ControlOption.KeyD = {
+    type: 'move',
+    argument: 'rightMove'
+  }
+  ControlOption.KeyE = {
+    type: 'action',
+    argument: 'magicArrow'
+  }
 
   return ControlOption[code]
 

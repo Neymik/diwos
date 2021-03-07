@@ -523,7 +523,7 @@ wsServer.on('request', function(request) {
     connection.on('message', function(message) {
         if (message.type === 'utf8') {
 
-          //console.log('Received Message: ' + message.utf8Data);
+          // console.log('Received Message: ' + message.utf8Data);
           var jsonReq = JSON.parse(message.utf8Data)
           tokenValidWS (connection, jsonReq.token, function(connection, user) {
 
@@ -555,26 +555,37 @@ wsServer.on('request', function(request) {
               connection.sendUTF(JSON.stringify(jsonRes))
 
             } else if (jsonReq.type == 'control') {
-              var moveOpts = getControlOpts(jsonReq.option)
 
-              //moveOpts
+              if (jsonReq.option.type == 'move') {
+                var moveOpts = getControlOpts(jsonReq.option.argument)
 
-              if (jsonReq.event == 'keydown') {
-                var objectProcess = new Object()
-                objectProcess.dx = moveOpts.x
-                objectProcess.dy = moveOpts.y
-                objectProcess.id = user.user_obj
-                WORLD.objectProcesses.push(objectProcess)
+                if (jsonReq.event == 'keydown') {
+                  var objectProcess = new Object()
+                  objectProcess.dx = moveOpts.x
+                  objectProcess.dy = moveOpts.y
+                  objectProcess.id = user.user_obj
+                  WORLD.objectProcesses.push(objectProcess)
 
-              } else if (jsonReq.event == 'keyup') {
+                } else if (jsonReq.event == 'keyup') {
 
-                for (var objIndex in WORLD.objectProcesses) {
-                  if (user.user_obj == WORLD.objectProcesses[objIndex].id) {
-                    WORLD.objectProcesses.splice(objIndex, 1)
+                  for (var objIndex in WORLD.objectProcesses) {
+                    if (user.user_obj == WORLD.objectProcesses[objIndex].id) {
+                      WORLD.objectProcesses.splice(objIndex, 1)
+                    }
                   }
-                }
 
+                }
+              } else if (jsonReq.option.type == 'action') {
+                if (jsonReq.event == 'keydown') {
+
+                  var user_obj = getGetObjectByObjectId(user.user_obj)
+                  var action = new (getControlOpts (jsonReq.option.argument))
+
+                  addWorldAction(user_obj, action, jsonReq)
+
+                }
               }
+
 
             } else if (jsonReq.type == 'world') {
               var jsonRes = new Object()
@@ -598,6 +609,7 @@ wsServer.on('request', function(request) {
               }
 
             } else if (jsonReq.type == 'ping') {
+
               var jsonRes = new Object()
               jsonRes.type = 'ping'
               connection.sendUTF(JSON.stringify(jsonRes))
@@ -717,6 +729,8 @@ function chatAddMessage(user, message) {
 var WORLD = new Object()
 WORLD.worldObjects = new Array()
 WORLD.objectProcesses = new Array()
+WORLD.objectProcessing = {}
+var ttempId = 0
 
 
 function worldBroadcast () {
@@ -750,6 +764,28 @@ function objectProcessing () {
     }
   }
 
+  for (var objectID in WORLD.objectProcessing) {
+
+    var objectProc = WORLD.objectProcessing[objectID]
+    var obj = objectProc.obj
+    objectProc.tick()
+    objectProc.liveTicks = objectProc.liveTicks - 1
+
+    if (false) {
+      objectProc.onCollision()
+    }
+
+    if (objectProc.disappearance() || objectProc.liveTicks <= 0) {
+      delete  WORLD.objectProcessing[objectID]
+      var index = WORLD.worldObjects.indexOf(obj);
+      if (index > -1) {
+        WORLD.worldObjects.splice(index, 1);
+      }
+    }
+
+  }
+
+
   worldBroadcast ()
 }
 setInterval(objectProcessing, 125)
@@ -771,21 +807,6 @@ function worldLoad () {
 
 }
 worldLoad ()
-
-function addToWorldObjects (obj) {
-
-  var newObj = {}
-  newObj.obj_id = obj.obj_id
-  newObj.obj_x = obj.obj_x
-  newObj.obj_y = obj.obj_y
-  newObj.obj_pic = obj.obj_pic.replace(/\\/g,'/')
-  WORLD.worldObjects.push(newObj)
-
-  worldBroadcast ()
-
-}
-
-
 
 function worldSave () {
 
@@ -812,6 +833,43 @@ function worldSave () {
 function worldUpdate () {
 
 }
+
+
+function addToWorldObjects (obj) {
+
+  var newObj = {}
+  newObj.obj_id = obj.obj_id
+  newObj.obj_x = obj.obj_x
+  newObj.obj_y = obj.obj_y
+  newObj.obj_size = obj.obj_size
+  newObj.obj_pic = obj.obj_pic.replace(/\\/g,'/')
+  WORLD.worldObjects.push(newObj)
+
+  worldBroadcast ()
+
+  return newObj
+
+}
+
+
+function addWorldAction (obj, action, prop) {
+
+  action.obj_id = 't' + obj.obj_id + 'o' + ttempId
+  action.obj_x = obj.obj_x
+  action.obj_y = obj.obj_y
+  action.xTo = prop.mouse_x
+  action.yTo = prop.mouse_y
+  action.obj = addToWorldObjects (action)
+  action.obj.obj_id = action.obj_id
+
+  action.initialize()
+
+  WORLD.objectProcessing[action.obj_id] = action
+
+  ttempId = ttempId + 1
+
+}
+
 
 
 ////////////////////////////////////////////////////////
@@ -870,7 +928,7 @@ function updateObject (obj) {
   for (var worldObj of WORLD.worldObjects) {
     if (worldObj.obj_id == obj.obj_id) {
       for (var key in obj) {
-        if (key == 'obj_id' || key == 'obj_x' || key == 'obj_y'){
+        if (key == 'obj_id' || key == 'obj_x' || key == 'obj_y' || key == 'obj_size'){
           worldObj[key] = Number(obj[key])
         } else {
           worldObj[key] = obj[key]
@@ -886,9 +944,6 @@ function updateObject (obj) {
 ////////////////////////////////////////////////////////
 /////////////////////////  /////////////////////
 ////////////////////////////////////////////////////////
-
-
-
 
 
 
