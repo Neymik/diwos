@@ -7,18 +7,19 @@ import { RedisClient } from 'redis';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-//import { AuthModule } from './auth';
-import { REDIS, RedisModule } from 'redisConfig';
+import { AuthModule } from './auth/auth.module';
+import { REDIS, RedisModule } from 'src/config/redisConfig';
 
-import { GameObjModule } from 'src/modules/gameObj/gameObj.module';
-import { UserModule } from 'src/modules/user/user.module';
-import { WorldModule } from 'src/modules/world/world.module';
+import { constants } from 'src/config/constants';
+
+import { UserModule } from 'src/user/user.module';
+import { WorldModule } from 'src/world/world.module';
 
 @Module({
   imports: [
+    AuthModule,
     RedisModule, 
     MongooseModule.forRoot('mongodb://localhost/diwos'),
-    GameObjModule,
     UserModule,
     WorldModule,
   ],
@@ -39,7 +40,7 @@ export class AppModule implements NestModule {
         session({
           store: new (RedisStore(session))({ client: this.redis, logErrors: true }),
           saveUninitialized: false,
-          secret: 'sup3rs3cr3t',
+          secret: constants.redisSecret,
           resave: false,
           cookie: {
             sameSite: true,

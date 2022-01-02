@@ -1,16 +1,17 @@
 import { Logger } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-
+import * as morgan from 'morgan';
 
 async function bootstrap() {
 
-  // somewhere in your initialization file
   const app = await NestFactory.create(
     AppModule
   );
 
   const logger = app.get(Logger);
+
+  app.use(morgan('dev'));
 
   await app.listen(1339);
 

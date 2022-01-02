@@ -10,13 +10,17 @@ export class UserService {
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
   ) {}
 
-  async create(createCatDto: CreateUserDto): Promise<User> {
-    const createdCat = await this.userModel.create(createCatDto);
-    return createdCat;
+  async create(createUserDto: CreateUserDto): Promise<User> {
+    const createdUser = await this.userModel.create(createUserDto);
+    return createdUser;
   }
 
   async findAll(): Promise<User[]> {
     return this.userModel.find().exec();
+  }
+
+  async findOne(login: string): Promise<User | undefined> {
+    return this.userModel.findOne({ login: login }).exec();
   }
 }
 
