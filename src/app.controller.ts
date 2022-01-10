@@ -16,8 +16,12 @@ export class AppController {
 
   @Get()
   getHello(): string {
-    console.log('Hello');
     return this.appService.getHello();
+  }
+
+  @Get('public')
+  getPublic() {
+    //return (await this.appService.getPublic(publicPath)).pipe(response);
   }
 
   @UseGuards(LocalAuthGuard)
