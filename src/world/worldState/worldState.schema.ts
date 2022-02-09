@@ -1,9 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
+import { WorldStateObjDto } from './dto/worldStateObj.dto';
 
 export type WorldStateDocument = WorldState & Document;
 
-@Schema()
+@Schema({ timestamps: true})
 export class WorldState {
 
   @Prop()
@@ -13,7 +14,13 @@ export class WorldState {
   chunkY: string;
 
   @Prop()
-  data: string;
+  data: Array<WorldStateObjDto>;
+
+  @Prop()
+  createdAt?: string;
+
+  @Prop()
+  updatedAt?: string;
 
 }
 

@@ -20,7 +20,7 @@ export class AuthService {
   }
 
   async validateUser(username: string, password: string): Promise<any> {
-    const user = await this.userService.findOne(username);
+    const user = await this.userService.findOneAuth(username);
     if (user && user.password === password) {
       const { password, ...result } = user;
       return result;
@@ -28,18 +28,19 @@ export class AuthService {
     return null;
   }
 
-  async login(user: any) {
-    const payload = { username: user.username, sub: user.userId };
+  async login(username: string) {
+    const user = await this.userService.findOne(username);
+    const payload = { username: user.username };
     return {
       access_token: this.jwtService.sign(payload),
     };
   }
 
   async authorization (req: any) {
-    const user_login = req.login
+    const user_username = req.username
     const user_password = req.password
 
-    const token = user_login + String(this.makeToken())
+    const token = user_username + String(this.makeToken())
 
     return req;
   }

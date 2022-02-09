@@ -10,12 +10,15 @@ export class UserController {
 
   @Post()
   async create(@Body() createUserDto: CreateUserDto) {
-    await this.userService.create(createUserDto);
+    const createdUser = await this.userService.create(createUserDto);
+    if (!createdUser) {
+      return 406;
+    }
   }
 
-  @Get('/:login')
-  async findOne(@Param('login') login: string): Promise<User> {
-    return this.userService.findOne(login);
+  @Get('/:username')
+  async findOne(@Param('username') username: string): Promise<User> {
+    return this.userService.findOne(username);
   }
 
   @Get()

@@ -6,14 +6,22 @@ export type UserDocument = User & Document;
 @Schema()
 export class User {
 
-  @Prop()
-  login: string;
+  @Prop({ 
+    required: true
+  })
+  username: string;
 
-  @Prop()
+  @Prop({
+    required: true,
+    select: false
+  })
   password: string;
 
   @Prop()
-  token: string;
+  isAdmin: boolean;
+
+  @Prop()
+  userObjs: Array<string>;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

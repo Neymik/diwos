@@ -1,3 +1,4 @@
+import * as redisStore from 'cache-manager-redis-store';
 import { CacheModule, Module } from '@nestjs/common';
 import { WorldController } from './world.controller';
 import { WorldService } from './world.service';
@@ -9,6 +10,7 @@ import { WorldGateway } from './world.gateway';
 @Module({
   imports: [
     CacheModule.register({
+      store: redisStore,
       ttl: 0, // seconds
       max: 10, // maximum number of items in cache
     }), 

@@ -32,25 +32,27 @@ import { WorldModule } from 'src/world/world.module';
   ],
 })
 
-export class AppModule implements NestModule {
-  constructor(@Inject(REDIS) private readonly redis: RedisClient) {}
-  configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(
-        session({
-          store: new (RedisStore(session))({ client: this.redis, logErrors: true }),
-          saveUninitialized: false,
-          secret: constants.redisSecret,
-          resave: false,
-          cookie: {
-            sameSite: true,
-            httpOnly: false,
-            maxAge: 60000,
-          },
-        }),
-        passport.initialize(),
-        passport.session(),
-      )
-      .forRoutes('*');
-  }
-}
+export class AppModule {}
+
+// export class AppModule implements NestModule {
+//   constructor(@Inject(REDIS) private readonly redis: RedisClient) {}
+//   configure(consumer: MiddlewareConsumer) {
+//     consumer
+//       .apply(
+//         session({
+//           store: new (RedisStore(session))({ client: this.redis, logErrors: true }),
+//           saveUninitialized: false,
+//           secret: constants.redisSecret,
+//           resave: false,
+//           cookie: {
+//             sameSite: true,
+//             httpOnly: false,
+//             maxAge: 60000,
+//           },
+//         }),
+//         passport.initialize(),
+//         passport.session(),
+//       )
+//       .forRoutes('*');
+//   }
+// }

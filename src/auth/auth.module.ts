@@ -6,17 +6,20 @@ import { AuthService } from './auth.service';
 import { constants } from '../config/constants';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { LocalStrategy } from './strategies/local.strategy';
+import { SocketStrategy } from './strategies/socket.strategy';
 
 @Module({
   imports: [
     UserModule,
-    PassportModule,
+    PassportModule.register({ 
+      session: true 
+    }),
     JwtModule.register({
       secret: constants.jwtSecret,
-      signOptions: { expiresIn: '60s' },
+      // signOptions: { expiresIn: '60s' },
     }),
   ],
-  providers: [AuthService, LocalStrategy, JwtStrategy],
+  providers: [AuthService, JwtStrategy, LocalStrategy, SocketStrategy],
   exports: [AuthService],
 })
 export class AuthModule {}

@@ -1,13 +1,13 @@
 import { Body, Controller, Get, Post } from '@nestjs/common';
 import { WorldStateService } from './worldState.service';
-import { CreateWorldStateDto } from './dto/create-worldState.dto';
+import { WorldStateDto } from './dto/worldState.dto';
 
 @Controller('worldState')
 export class WorldStateController {
   constructor(private readonly worldStateService: WorldStateService) {}
 
   @Post()
-  async create(@Body() updateWorldStateDto: CreateWorldStateDto) {
+  async create(@Body() updateWorldStateDto: WorldStateDto) {
     await this.worldStateService.create(updateWorldStateDto);
   }
 

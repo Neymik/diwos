@@ -21,27 +21,29 @@ export class WorldService {
         return await this.cacheManager.get(key);
     }
 
-    testWorldPayloadProcess(world: any, payload: any): any {
+    testWorldPayloadProcess(user: any, world: any, payload: any): any { //FIX ME
 
-        if (payload.action == 'keydown' && payload.token) {
-            if (payload.data == 'a') {
-                world[0].obj_x = world[0].obj_x - 1;
+        for (const userObjKey in user.userObjs) {
+            if (payload.action == 'keydown') {
+                if (payload.data == 'KeyA') {
+                    world[user.userObjs[userObjKey]].objX = world[user.userObjs[userObjKey]].objX - 1;
+                }
+            
+                if (payload.data == 'KeyD') {
+                    world[user.userObjs[userObjKey]].objX = world[user.userObjs[userObjKey]].objX + 1;
+                }
+    
+                if (payload.data == 'KeyW') {
+                    world[user.userObjs[userObjKey]].objY = world[user.userObjs[userObjKey]].objY - 1;
+                }
+            
+                if (payload.data == 'KeyS') {
+                    world[user.userObjs[userObjKey]].objY = world[user.userObjs[userObjKey]].objY + 1;
+                }
+            
             }
-        
-            if (payload.data == 'd') {
-                world[0].obj_x = world[0].obj_x + 1;
-            }
-
-            if (payload.data == 'w') {
-                world[0].obj_y = world[0].obj_y - 1;
-            }
-        
-            if (payload.data == 's') {
-                world[0].obj_y = world[0].obj_y + 1;
-            }
-        
         }
-
+        
         return world;
     }
 

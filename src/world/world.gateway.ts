@@ -8,9 +8,11 @@ OnGatewayDisconnect,
 MessageBody,
 ConnectedSocket,
 } from '@nestjs/websockets';
-import { Logger } from '@nestjs/common';
+import { Logger, UseGuards, Request } from '@nestjs/common';
 import { Socket, Server } from 'socket.io';
 import { WorldService } from './world.service';
+import { WorldStateService } from './worldState/worldState.service';
+import { SocketAuthGuard } from 'src/auth/guards/socketAuth.guard';
 
 @WebSocketGateway({
   allowEIO3: true,
@@ -20,58 +22,56 @@ import { WorldService } from './world.service';
   // },
 })
 export class WorldGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
-  constructor(private readonly worldService: WorldService) {}
+  constructor(
+    private readonly worldService: WorldService,
+    private readonly worldStateService: WorldStateService
+  ) {}
   @WebSocketServer() 
-  clients: any;
+  clients: Array<Socket>;
   server: Server;
 
   private logger: Logger = new Logger('WorldGateway');
 
-  @SubscribeMessage('events')
-  handleEvent(
-    @MessageBody() data: string,
+
+  @UseGuards(SocketAuthGuard)
+  @SubscribeMessage('chatMessage')
+  chatMessageHandle(
+    @Request() req,
+    @MessageBody() data: any,
     @ConnectedSocket() client: Socket,
-  ): string {
-    console.log(data)
-    return data;
-  }
-  
-  @SubscribeMessage('msgToClient')
-  handleMessage(client: Socket, payload: string): void {
-    console.log(payload);
-    client.send('msgToClient', payload);
+  ): void {
+    data.text = req.user.username + ': ' + data.text;
+    this.broadcastMessage('chatMessage', data);
   }
 
+
+  @UseGuards(SocketAuthGuard)
   @SubscribeMessage('message')
-  async handleMessage2(client: Socket, payload: any): Promise<void> {
-    console.log('worldworldworldworldworldworldworldworldworldworldworld');
-    console.log(payload);
+  async handleMessage2(
+    @Request() req,
+    @MessageBody() data: any,
+    @ConnectedSocket() client: Socket,
+  ): Promise<void> {
 
     let world = await this.worldService.getCache('world');
 
-    world = this.worldService.testWorldPayloadProcess(world, payload);
+    world.data = this.worldService.testWorldPayloadProcess(req.user, world.data, data);
 
     this.worldService.setCache('world', world);
     this.broadcastMessage('world', world);
 
   }
 
+
   async afterInit(server: Server) {
     this.clients = [];
 
-    const defWorld = [
-        {
-            obj_id: 1,
-            obj_x: 17,
-            obj_y: 14,
-            obj_size: 50,
-            obj_pic: 'http://server.diwos.ru/images/cat.gif'
-        }
-    ];
+    const startWorld = await this.worldStateService.getLast();
+    this.worldService.setCache('world', startWorld);
 
-    this.worldService.setCache('world', defWorld);
     this.logger.log('Init');
   }
+
 
   handleDisconnect(client: Socket) {
     for (let i = 0; i < this.clients.length; i++) {
@@ -83,11 +83,16 @@ export class WorldGateway implements OnGatewayInit, OnGatewayConnection, OnGatew
     this.logger.log(`Client disconnected: ${client.id}`);
   }
 
-  handleConnection(client: Socket, ...args: any[]) {
+
+  async handleConnection(client: Socket, ...args: any[]) {
     client.send('hi', 'hi');
     this.clients.push(client);
     this.logger.log(`Client connected: ${client.id}`);
+
+    let world = await this.worldService.getCache('world');
+    this.broadcastMessage('world', world);
   }
+  
 
   broadcastMessage(event: string, payload: any) {
     for (const client of this.clients) {

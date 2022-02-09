@@ -11,6 +11,10 @@ export class UserService {
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
+    const findedUser = await this.findOne(createUserDto.username);
+    if (findedUser) {
+      return undefined;
+    }
     const createdUser = await this.userModel.create(createUserDto);
     return createdUser;
   }
@@ -19,8 +23,12 @@ export class UserService {
     return this.userModel.find().exec();
   }
 
-  async findOne(login: string): Promise<User | undefined> {
-    return this.userModel.findOne({ login: login }).exec();
+  async findOne(username: string): Promise<User | undefined> {
+    return this.userModel.findOne({ username: username }).exec();
+  }
+
+  async findOneAuth(username: string): Promise<User | undefined> {
+    return this.userModel.findOne({ username: username }).select('+password').exec();
   }
 }
 
